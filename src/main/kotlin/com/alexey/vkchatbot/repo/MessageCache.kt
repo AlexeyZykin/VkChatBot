@@ -5,14 +5,11 @@ import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 
 @Repository
-class VkApiRepo {
+class MessageCache {
     private val cachedMsg = ConcurrentHashMap<Int, MessageEntity>()
 
-    fun isCached(messageId: Int): Boolean =
-        cachedMsg.containsKey(messageId)
-
-    fun saveMessage(message: MessageEntity) {
-        cachedMsg[message.id] = message
+    fun tryCacheMessage(message: MessageEntity): Boolean {
+        return cachedMsg.putIfAbsent(message.id, message) == null
     }
 
     fun getCachedMessages(): List<MessageEntity> = cachedMsg.values.toList()

@@ -5,7 +5,7 @@ import com.alexey.vkchatbot.model.Callback
 import com.alexey.vkchatbot.model.EventType
 import com.alexey.vkchatbot.model.MessageNewEvent
 import com.alexey.vkchatbot.model.toEntity
-import com.alexey.vkchatbot.repo.VkApiRepo
+import com.alexey.vkchatbot.repo.MessageCache
 import org.springframework.stereotype.Service
 
 
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 class VkApiEventService(
     private val vkApiConfig: VkApiConfig,
     private val vkApiClient: VkApiClient,
-    private val vkApiRepo: VkApiRepo
+    private val messageCache: MessageCache
 ) {
 
     fun onEvent(callback: Callback): String {
@@ -23,12 +23,11 @@ class VkApiEventService(
             }
 
             EventType.MESSAGE_NEW -> {
-                val event = callback.eventDto as MessageNewEvent
-                if (!vkApiRepo.isCached(event.message.id)) {
-                    vkApiRepo.saveMessage(event.message.toEntity())
+                val message = (callback.eventDto as MessageNewEvent).message
+                if (messageCache.tryCacheMessage(message.toEntity())) {
                     vkApiClient.sendMessage(
-                        peerId = event.message.peerId,
-                        message = event.message.text
+                        peerId = message.peerId,
+                        message = message.text
                     )
                 }
                 MESSAGE_RECEIVED_SUCCESS

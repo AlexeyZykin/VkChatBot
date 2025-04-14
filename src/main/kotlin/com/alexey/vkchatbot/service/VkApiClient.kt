@@ -4,6 +4,7 @@ import com.alexey.vkchatbot.config.VkApiConfig
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestClient
 import kotlin.random.Random
@@ -17,22 +18,37 @@ class VkApiClient(
 
     fun sendMessage(peerId: Int, message: String) {
         val vkBotMessage = "Вы сказали: $message"
-        val formData = LinkedMultiValueMap<String, String>().apply {
+        val formData = createFormData(peerId, vkBotMessage)
+
+        try {
+            sendVkApiRequest(formData)
+        } catch (e: HttpClientErrorException) {
+            throw HttpClientErrorException(e.statusCode)
+        }
+    }
+
+
+    private fun createFormData(peerId: Int, message: String): MultiValueMap<String, String> {
+        return  LinkedMultiValueMap<String, String>().apply {
             add("peer_id", peerId.toString())
-            add("message", vkBotMessage)
+            add("message", message)
             add("random_id", Random.nextInt().toString())
             add("access_token", vkApiConfig.token)
             add("v", vkApiConfig.version)
         }
-        try {
-            restClient.post()
-                .uri("https://api.vk.com/method/messages.send")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(formData)
-                .retrieve()
-                .toBodilessEntity()
-        } catch (e: HttpClientErrorException) {
-            throw HttpClientErrorException(e.statusCode)
-        }
+    }
+
+    private fun sendVkApiRequest(formData: MultiValueMap<String, String>) {
+        restClient.post()
+            .uri(VK_API_MESSAGES_SEND_URI)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(formData)
+            .retrieve()
+            .toBodilessEntity()
+    }
+
+
+    companion object {
+        private const val VK_API_MESSAGES_SEND_URI = "https://api.vk.com/method/messages.send"
     }
 }
