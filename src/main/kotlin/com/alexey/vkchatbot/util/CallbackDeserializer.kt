@@ -13,7 +13,7 @@ class CallbackDeserializer : JsonDeserializer<CallbackDto>() {
         val node = p.codec.readTree<JsonNode>(p)
 
         val type = try {
-            EventType.valueOf(node["type"].asText().uppercase(Locale.getDefault()))
+            EventTypeDto.valueOf(node["type"].asText().uppercase(Locale.getDefault()))
         } catch (e: IllegalArgumentException) {
             throw UnknownEventTypeException("Неизвестный тип события")
         }
@@ -23,16 +23,16 @@ class CallbackDeserializer : JsonDeserializer<CallbackDto>() {
         val secret = node["secret"]?.asText()
 
         val event = when (type) {
-            EventType.CONFIRMATION -> ConfirmationEvent
-            EventType.MESSAGE_NEW -> {
+            EventTypeDto.CONFIRMATION -> ConfirmationEventDto
+            EventTypeDto.MESSAGE_NEW -> {
                 val messageNode = node["object"]["message"]
-                MessageNewEvent(
-                    message = Message(
+                MessageNewEventDto(
+                    messageDto = MessageDto(
                         id = messageNode["id"].asInt(),
                         date = messageNode["date"].asInt(),
                         peerId = messageNode["peer_id"].asInt(),
                         fromId = messageNode["from_id"].asInt(),
-                        message = messageNode["text"].asText()
+                        text = messageNode["text"].asText()
                     )
                 )
             }

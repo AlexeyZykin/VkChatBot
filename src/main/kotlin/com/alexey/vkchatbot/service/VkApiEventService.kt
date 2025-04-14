@@ -1,9 +1,10 @@
 package com.alexey.vkchatbot.service
 
 import com.alexey.vkchatbot.config.VkApiConfig
-import com.alexey.vkchatbot.dto.CallbackDto
-import com.alexey.vkchatbot.dto.EventType
-import com.alexey.vkchatbot.dto.MessageNewEvent
+import com.alexey.vkchatbot.model.Callback
+import com.alexey.vkchatbot.model.EventType
+import com.alexey.vkchatbot.model.MessageNewEvent
+import com.alexey.vkchatbot.model.toEntity
 import com.alexey.vkchatbot.repo.VkApiRepo
 import org.springframework.stereotype.Service
 
@@ -15,19 +16,19 @@ class VkApiEventService(
     private val vkApiRepo: VkApiRepo
 ) {
 
-    fun onEvent(callbackDto: CallbackDto): String {
-        return when (callbackDto.type) {
+    fun onEvent(callback: Callback): String {
+        return when (callback.type) {
             EventType.CONFIRMATION -> {
                 vkApiConfig.confirmation
             }
 
             EventType.MESSAGE_NEW -> {
-                val event = callbackDto.event as MessageNewEvent
+                val event = callback.eventDto as MessageNewEvent
                 if (!vkApiRepo.isCached(event.message.id)) {
-                    vkApiRepo.saveMessage(event.message)
+                    vkApiRepo.saveMessage(event.message.toEntity())
                     vkApiClient.sendMessage(
                         peerId = event.message.peerId,
-                        message = event.message.message
+                        message = event.message.text
                     )
                 }
                 MESSAGE_RECEIVED_SUCCESS

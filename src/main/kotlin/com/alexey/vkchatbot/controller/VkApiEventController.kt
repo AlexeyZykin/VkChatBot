@@ -1,6 +1,7 @@
 package com.alexey.vkchatbot.controller
 
 import com.alexey.vkchatbot.dto.CallbackDto
+import com.alexey.vkchatbot.dto.toModel
 import com.alexey.vkchatbot.service.VkApiEventService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -18,11 +19,9 @@ class VkApiEventController(
 ) {
 
 
-
     @PostMapping
     fun sendCallback(@RequestBody callbackDto: CallbackDto) : ResponseEntity<String> {
-        return ResponseEntity.status(HttpStatus.OK).body(vkApiEventService.onEvent(callbackDto))
+        return ResponseEntity.status(HttpStatus.OK).body(vkApiEventService.onEvent(callbackDto.toModel()))
     }
-
 
 }

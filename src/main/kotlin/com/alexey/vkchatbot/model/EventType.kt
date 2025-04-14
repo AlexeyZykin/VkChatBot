@@ -1,4 +1,4 @@
-package com.alexey.vkchatbot.dto
+package com.alexey.vkchatbot.model
 
 enum class EventType {
     CONFIRMATION, MESSAGE_NEW
